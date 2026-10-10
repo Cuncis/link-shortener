@@ -14,8 +14,9 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   const port = config.get('app.port', { infer: true });
-  await app.listen(port);
-  console.log(`API running on http://localhost:${port}`);
+  const host = config.get('app.host', { infer: true });
+  await app.listen(port, host);
+  console.log(`API running on http://${host}:${port}`);
 }
 
 void bootstrap();

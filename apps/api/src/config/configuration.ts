@@ -7,6 +7,7 @@ export const configuration = () => {
     app: {
       nodeEnv: env.NODE_ENV,
       port: env.PORT,
+      host: env.HOST,
       // No trailing slash, so we can safely build `${baseUrl}/${slug}`
       baseUrl: env.BASE_URL.replace(/\/+$/, ''),
       corsOrigin: env.CORS_ORIGIN.replace(/\/+$/, ''),

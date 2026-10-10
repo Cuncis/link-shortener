@@ -14,6 +14,7 @@
     "check:api": "pnpm --filter api check",
     "db:migrate": "pnpm --filter api prisma:migrate",
     "db:studio": "pnpm --filter api prisma:studio",
-    "db:reset": "pnpm --filter api prisma:reset"
+    "db:reset": "pnpm --filter api prisma:reset",
+    "dev:web": "pnpm --filter web dev"
   }
 }

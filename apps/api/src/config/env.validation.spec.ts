@@ -8,6 +8,7 @@ describe('validateEnv', () => {
 
     expect(env.NODE_ENV).toBe(NodeEnv.Development);
     expect(env.PORT).toBe(3001);
+    expect(env.HOST).toBe('127.0.0.1');
     expect(env.BASE_URL).toBe('http://localhost:3001');
     expect(env.CORS_ORIGIN).toBe('http://localhost:3000');
   });

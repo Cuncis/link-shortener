@@ -16,6 +16,12 @@ export class EnvironmentVariables {
   @Max(65535)
   PORT: number = 3001;
 
+  // Address to listen on. IPv4 loopback (not Node's default dual-stack "::") because
+  // Windows browsers cannot reach a "::" listener through the WSL2 localhost relay.
+  // Set HOST=0.0.0.0 inside Docker/production.
+  @IsString()
+  HOST: string = '127.0.0.1';
+
   @IsString()
   @Matches(/^mysql:\/\/.+/, { message: 'DATABASE_URL must start with mysql://' })
   DATABASE_URL!: string;

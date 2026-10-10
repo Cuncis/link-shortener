@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+
+body {
+  @apply bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100;
+}
+
+::placeholder {
+  color: #71717a;
+  opacity: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::placeholder {
+    color: #a1a1aa;
+  }
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
