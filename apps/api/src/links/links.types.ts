@@ -6,3 +6,15 @@ export type LinkResponse = {
   clicks: number;
   createdAt: Date;
 };
+
+export type PaginationMeta = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export type PaginatedLinks = {
+  items: LinkResponse[];
+  meta: PaginationMeta;
+};

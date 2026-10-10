@@ -12,8 +12,11 @@ import { isRecordNotFound, isUniqueViolation } from '../prisma/prisma-errors.js'
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateLinkDto } from './dto/create-link.dto.js';
 import { MAX_SLUG_ATTEMPTS, SLUG_PATTERN } from './links.constants.js';
-import type { LinkResponse } from './links.types.js';
+import type { ListLinksQuery } from './dto/list-links.query.js';
+import type { LinkResponse,PaginatedLinks } from './links.types.js';
 import { generateSlug } from './slug.util.js';
+
+const MAX_INT32 = 2_147_483_647; // MySQL INT upper bound
 
 @Injectable()
 export class LinksService {
@@ -47,6 +50,40 @@ export class LinksService {
         select: { url: true },
       });
       return link.url;
+    } catch (error) {
+      if (isRecordNotFound(error)) {
+        throw new NotFoundException('Link not found.');
+      }
+      throw error;
+    }
+  }
+
+    async list({ page, limit }: ListLinksQuery): Promise<PaginatedLinks> {
+    // One transaction so `total` and `items` come from the same snapshot
+    const [total, links] = await this.prisma.$transaction([
+      this.prisma.link.count(),
+      this.prisma.link.findMany({
+        // `id` breaks ties so pages never overlap or skip rows
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+    ]);
+
+    return {
+      items: links.map((link) => this.toResponse(link)),
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async remove(id: number): Promise<void> {
+    // Can't exist in an INT column; also avoids a Prisma overflow error (500)
+    if (!Number.isSafeInteger(id) || id < 1 || id > MAX_INT32) {
+      throw new NotFoundException('Link not found.');
+    }
+
+    try {
+      await this.prisma.link.delete({ where: { id } });
     } catch (error) {
       if (isRecordNotFound(error)) {
         throw new NotFoundException('Link not found.');
