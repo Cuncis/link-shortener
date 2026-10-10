@@ -7,6 +7,8 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     globals: true,
+    // class-transformer/class-validator need the Reflect metadata polyfill.
+    setupFiles: ['reflect-metadata'],
     root: './',
     include: ['**/*.spec.ts'],
   },
