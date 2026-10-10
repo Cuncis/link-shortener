@@ -4,15 +4,19 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { configuration } from './config/configuration.js';
 import { validateEnv } from './config/env.validation.js';
+import { HealthModule } from './health/health.module.js';
+import { PrismaModule } from './prisma/prisma.module.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, // no need to import ConfigModule in every feature module
+      isGlobal: true,
       envFilePath: '.env',
       load: [configuration],
       validate: validateEnv,
     }),
+    PrismaModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
