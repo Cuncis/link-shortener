@@ -3,14 +3,15 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Link } from '@prisma/client';
 import type { AppConfig } from '../config/configuration.js';
-import { isUniqueViolation } from '../prisma/prisma-errors.js';
+import { isRecordNotFound, isUniqueViolation } from '../prisma/prisma-errors.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateLinkDto } from './dto/create-link.dto.js';
-import { MAX_SLUG_ATTEMPTS } from './links.constants.js';
+import { MAX_SLUG_ATTEMPTS, SLUG_PATTERN } from './links.constants.js';
 import type { LinkResponse } from './links.types.js';
 import { generateSlug } from './slug.util.js';
 
@@ -28,6 +29,30 @@ export class LinksService {
       return this.createWithCustomSlug(dto.slug, dto.url);
     }
     return this.createWithGeneratedSlug(dto.url);
+  }
+
+    /** Counts one click and returns the destination URL. Throws 404 for unknown slugs. */
+  async resolve(rawSlug: string): Promise<string> {
+    const slug = rawSlug.toLowerCase(); // slugs are stored lowercase
+
+    // Can't possibly exist (e.g. "favicon.ico"): skip the database entirely
+    if (!SLUG_PATTERN.test(slug)) {
+      throw new NotFoundException('Link not found.');
+    }
+
+    try {
+      const link = await this.prisma.link.update({
+        where: { slug },
+        data: { clicks: { increment: 1 } }, // atomic: SET clicks = clicks + 1
+        select: { url: true },
+      });
+      return link.url;
+    } catch (error) {
+      if (isRecordNotFound(error)) {
+        throw new NotFoundException('Link not found.');
+      }
+      throw error;
+    }
   }
 
   private async createWithCustomSlug(slug: string, url: string): Promise<LinkResponse> {
@@ -84,3 +109,4 @@ export class LinksService {
     };
   }
 }
+
